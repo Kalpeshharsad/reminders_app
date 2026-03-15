@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/notification_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 enum Frequency { hourly, threeHours, sixHours, twelveHours, daily, weekly, monthly, yearly }
 
@@ -41,32 +43,79 @@ class Reminder {
     if (title.contains('Grocery')) return Colors.purple;
     return Colors.blue;
   }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'frequency': frequency.index,
+    'startTime': {'hour': startTime.hour, 'minute': startTime.minute},
+    'startDate': startDate.toIso8601String(),
+    'isCompleted': isCompleted,
+  };
+
+  factory Reminder.fromJson(Map<String, dynamic> json) => Reminder(
+    id: json['id'],
+    title: json['title'],
+    frequency: Frequency.values[json['frequency']],
+    startTime: TimeOfDay(
+      hour: json['startTime']['hour'],
+      minute: json['startTime']['minute'],
+    ),
+    startDate: DateTime.parse(json['startDate']),
+    isCompleted: json['isCompleted'],
+  );
 }
 
 class ReminderProvider with ChangeNotifier {
-  final List<Reminder> _reminders = [
-    Reminder(
-      id: '1',
-      title: 'Drink Water',
-      frequency: Frequency.hourly,
-      startTime: const TimeOfDay(hour: 8, minute: 0),
-      startDate: DateTime.now(),
-    ),
-    Reminder(
-      id: '2',
-      title: 'Take Vitamins',
-      frequency: Frequency.daily,
-      startTime: const TimeOfDay(hour: 9, minute: 0),
-      startDate: DateTime.now(),
-    ),
-  ];
+  List<Reminder> _reminders = [];
 
   List<Reminder> get reminders => _reminders;
 
   final NotificationService _notificationService = NotificationService();
 
+  ReminderProvider() {
+    _loadReminders();
+  }
+
+  Future<void> _loadReminders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? remindersJson = prefs.getString('reminders');
+    
+    if (remindersJson != null) {
+      final List<dynamic> decoded = jsonDecode(remindersJson);
+      _reminders = decoded.map((item) => Reminder.fromJson(item)).toList();
+    } else {
+      // Default reminders if none exist
+      _reminders = [
+        Reminder(
+          id: '1',
+          title: 'Drink Water',
+          frequency: Frequency.hourly,
+          startTime: const TimeOfDay(hour: 8, minute: 0),
+          startDate: DateTime.now(),
+        ),
+        Reminder(
+          id: '2',
+          title: 'Take Vitamins',
+          frequency: Frequency.daily,
+          startTime: const TimeOfDay(hour: 9, minute: 0),
+          startDate: DateTime.now(),
+        ),
+      ];
+      _saveToPrefs();
+    }
+    notifyListeners();
+  }
+
+  Future<void> _saveToPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String encoded = jsonEncode(_reminders.map((r) => r.toJson()).toList());
+    await prefs.setString('reminders', encoded);
+  }
+
   void addReminder(Reminder reminder) {
     _reminders.add(reminder);
+    _saveToPrefs();
     _scheduleReminderNotification(reminder);
     notifyListeners();
   }
@@ -75,12 +124,14 @@ class ReminderProvider with ChangeNotifier {
     final index = _reminders.indexWhere((r) => r.id == id);
     if (index != -1) {
       _reminders[index].isCompleted = !_reminders[index].isCompleted;
+      _saveToPrefs();
       notifyListeners();
     }
   }
 
   void removeReminder(String id) {
     _reminders.removeWhere((r) => r.id == id);
+    _saveToPrefs();
     _notificationService.cancelNotification(id.hashCode);
     notifyListeners();
   }
@@ -93,9 +144,6 @@ class ReminderProvider with ChangeNotifier {
       reminder.startTime.hour,
       reminder.startTime.minute,
     );
-
-    // If the scheduled time is in the past for today, and it's daily/hourly, we might want to schedule for next occurrence
-    // but for now let's just schedule it as is.
 
     DateTimeComponents? matchComponents;
     switch (reminder.frequency) {
@@ -112,7 +160,7 @@ class ReminderProvider with ChangeNotifier {
         matchComponents = DateTimeComponents.dateAndTime;
         break;
       default:
-        matchComponents = null; // Hourly and others might need custom logic or just repeat
+        matchComponents = null;
     }
 
     _notificationService.scheduleNotification(

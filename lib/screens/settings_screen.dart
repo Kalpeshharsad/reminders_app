@@ -79,11 +79,6 @@ class SettingsScreen extends StatelessWidget {
                 '/settings/notifications',
               ),
             ]),
-            const SizedBox(height: 24),
-            _buildSection(context, 'General', [
-              _buildNavigateItem(context, 'Help & Feedback', Symbols.help, Colors.teal, null, isDark, null),
-              _buildNavigateItem(context, 'Rate App', Symbols.star, Colors.pink, null, isDark, null),
-            ]),
             const SizedBox(height: 32),
             const Text(
               'Reminders version 2.4.0 (829)',
