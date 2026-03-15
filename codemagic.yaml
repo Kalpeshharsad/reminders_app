@@ -1,0 +1,24 @@
+workflows:
+  ios-unsigned-build:
+    name: iOS Unsigned Build
+    instance_type: mac_mini_m1
+    max_build_duration: 30
+    environment:
+      flutter: stable
+      xcode: latest
+    scripts:
+      - name: Install dependencies
+        script: flutter pub get
+      - name: Build iOS App (Unsigned)
+        script: |
+          # Build the .app bundle with no-codesign
+          flutter build ios --release --no-codesign
+          
+          # Manually package into an .ipa if needed for jailbroken installation
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r RemindersUnsigned.ipa Payload
+          rm -rf Payload
+    artifacts:
+      - RemindersUnsigned.ipa
+      - build/ios/iphoneos/Runner.app
