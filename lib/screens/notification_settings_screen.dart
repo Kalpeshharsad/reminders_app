@@ -36,15 +36,15 @@ class NotificationSettingsScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 24),
             _buildSection(context, 'REPETITION & SOUND', [
-              _buildToggleItem('Daily Digest', Symbols.summarize, Colors.blue, false, isDark, primary),
-              _buildToggleItem('Critical Alerts', Symbols.priority_high, Colors.red, true, isDark, primary),
+              _buildToggleItem('Daily Digest', Symbols.summarize, Colors.blue, settings.dailyDigest, isDark, primary, (val) => settings.toggleDailyDigest(val)),
+              _buildToggleItem('Critical Alerts', Symbols.priority_high, Colors.red, settings.criticalAlerts, isDark, primary, (val) => settings.toggleCriticalAlerts(val)),
               _buildSoundSelection(context, primary, isDark),
             ]),
             const SizedBox(height: 24),
             _buildSection(context, 'ALERTS', [
-              _buildToggleItem('Show on Lock Screen', Symbols.lock, Colors.indigo, true, isDark, primary),
-              _buildToggleItem('Show in History', Symbols.history, Colors.orange, true, isDark, primary),
-              _buildToggleItem('Show as Banners', Symbols.ad_units, Colors.green, true, isDark, primary),
+              _buildToggleItem('Show on Lock Screen', Symbols.lock, Colors.indigo, settings.showOnLockScreen, isDark, primary, (val) => settings.toggleShowOnLockScreen(val)),
+              _buildToggleItem('Show in History', Symbols.history, Colors.orange, settings.showInHistory, isDark, primary, (val) => settings.toggleShowInHistory(val)),
+              _buildToggleItem('Show as Banners', Symbols.ad_units, Colors.green, settings.showAsBanners, isDark, primary, (val) => settings.toggleShowAsBanners(val)),
             ]),
             const SizedBox(height: 24),
             _buildSection(context, 'OPTIONS', [
@@ -91,7 +91,7 @@ class NotificationSettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildToggleItem(String title, IconData icon, Color iconBg, bool value, bool isDark, Color primary) {
+  Widget _buildToggleItem(String title, IconData icon, Color iconBg, bool value, bool isDark, Color primary, ValueChanged<bool> onChanged) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -113,7 +113,7 @@ class NotificationSettingsScreen extends StatelessWidget {
           const Spacer(),
           Switch(
             value: value,
-            onChanged: (val) {},
+            onChanged: onChanged,
             activeTrackColor: primary,
           ),
         ],
