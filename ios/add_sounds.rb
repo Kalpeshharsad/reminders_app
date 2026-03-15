@@ -1,5 +1,5 @@
 require 'xcodeproj'
-project_path = '/home/kal/.gemini/antigravity/scratch/Reminders/reminders_app/ios/Runner.xcodeproj'
+project_path = File.join(File.dirname(__FILE__), 'Runner.xcodeproj')
 project = Xcodeproj::Project.open(project_path)
 
 # Find Runner group
