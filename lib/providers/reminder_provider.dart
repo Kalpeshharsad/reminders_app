@@ -130,10 +130,18 @@ class ReminderProvider with ChangeNotifier {
   }
 
   void removeReminder(String id) {
-    _reminders.removeWhere((r) => r.id == id);
-    _saveToPrefs();
-    _notificationService.cancelNotification(id.hashCode);
-    notifyListeners();
+    final index = _reminders.indexWhere((r) => r.id == id);
+    if (index != -1) {
+      final reminder = _reminders[index];
+      // Cancel all possible instances (up to 24 for hourly)
+      int baseId = reminder.id.hashCode.abs() % 100000;
+      for (int i = 0; i < 24; i++) {
+        _notificationService.cancelNotification(baseId * 100 + i);
+      }
+      _reminders.removeAt(index);
+      _saveToPrefs();
+      notifyListeners();
+    }
   }
 
   void _scheduleReminderNotification(Reminder reminder) async {
@@ -148,31 +156,77 @@ class ReminderProvider with ChangeNotifier {
       reminder.startTime.minute,
     );
 
-    DateTimeComponents? matchComponents;
+    int count = 1;
+    int intervalHours = 0;
+    bool isSubDaily = false;
+
     switch (reminder.frequency) {
-      case Frequency.daily:
-        matchComponents = DateTimeComponents.time;
+      case Frequency.hourly:
+        count = 24;
+        intervalHours = 1;
+        isSubDaily = true;
         break;
-      case Frequency.weekly:
-        matchComponents = DateTimeComponents.dayOfWeekAndTime;
+      case Frequency.threeHours:
+        count = 8;
+        intervalHours = 3;
+        isSubDaily = true;
         break;
-      case Frequency.monthly:
-        matchComponents = DateTimeComponents.dayOfMonthAndTime;
+      case Frequency.sixHours:
+        count = 4;
+        intervalHours = 6;
+        isSubDaily = true;
         break;
-      case Frequency.yearly:
-        matchComponents = DateTimeComponents.dateAndTime;
+      case Frequency.twelveHours:
+        count = 2;
+        intervalHours = 12;
+        isSubDaily = true;
         break;
       default:
-        matchComponents = null;
+        isSubDaily = false;
+        break;
     }
 
-    _notificationService.scheduleNotification(
-      id: reminder.id.hashCode,
-      title: 'Reminder: ${reminder.title}',
-      body: 'It\'s time for your ${reminder.frequencyText.toLowerCase()} task!',
-      scheduledDate: scheduledDate,
-      matchDateTimeComponents: matchComponents,
-      sound: sound,
-    );
+    int baseId = reminder.id.hashCode.abs() % 100000;
+
+    if (isSubDaily) {
+      for (int i = 0; i < count; i++) {
+        DateTime instanceDate = scheduledDate.add(Duration(hours: i * intervalHours));
+        _notificationService.scheduleNotification(
+          id: baseId * 100 + i,
+          title: 'Reminder: ${reminder.title}',
+          body: 'It\'s time for your ${reminder.frequencyText.toLowerCase()} task!',
+          scheduledDate: instanceDate,
+          matchDateTimeComponents: DateTimeComponents.time,
+          sound: sound,
+        );
+      }
+    } else {
+      DateTimeComponents? matchComponents;
+      switch (reminder.frequency) {
+        case Frequency.daily:
+          matchComponents = DateTimeComponents.time;
+          break;
+        case Frequency.weekly:
+          matchComponents = DateTimeComponents.dayOfWeekAndTime;
+          break;
+        case Frequency.monthly:
+          matchComponents = DateTimeComponents.dayOfMonthAndTime;
+          break;
+        case Frequency.yearly:
+          matchComponents = DateTimeComponents.dateAndTime;
+          break;
+        default:
+          matchComponents = null;
+      }
+
+      _notificationService.scheduleNotification(
+        id: baseId * 100,
+        title: 'Reminder: ${reminder.title}',
+        body: 'It\'s time for your ${reminder.frequencyText.toLowerCase()} task!',
+        scheduledDate: scheduledDate,
+        matchDateTimeComponents: matchComponents,
+        sound: sound,
+      );
+    }
   }
 }
