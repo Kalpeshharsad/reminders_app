@@ -9,6 +9,10 @@ workflows:
     scripts:
       - name: Install dependencies
         script: flutter pub get
+      - name: Link Custom Notification Sounds
+        script: |
+          gem install xcodeproj
+          ruby ios/add_sounds.rb
       - name: Build iOS App (Unsigned)
         script: |
           # Build the .app bundle with no-codesign

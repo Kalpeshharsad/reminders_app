@@ -40,7 +40,7 @@ class NotificationService {
     required DateTimeComponents? matchDateTimeComponents,
     String? sound,
   }) async {
-    final iosSound = (sound != null && sound != 'Default') ? '${sound.toLowerCase()}.aiff' : null;
+    final iosSound = (sound != null && sound != 'Default') ? '${sound.toLowerCase()}.wav' : null;
     final androidSound = (sound != null && sound != 'Default') ? RawResourceAndroidNotificationSound(sound.toLowerCase()) : null;
 
     final darwinDetails = DarwinNotificationDetails(
