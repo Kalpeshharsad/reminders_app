@@ -114,7 +114,7 @@ class SettingsScreen extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: primary.withOpacity(0.2),
+              color: primary.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(Symbols.account_circle, color: primary, size: 36),
@@ -259,7 +259,7 @@ class SettingsScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           shape: BoxShape.circle,
-          border: isSelected ? Border.all(color: color.withOpacity(0.3), width: 4) : null,
+          border: isSelected ? Border.all(color: color.withValues(alpha: 0.3), width: 4) : null,
         ),
         child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 20) : null,
       ),

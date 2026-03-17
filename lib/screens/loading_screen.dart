@@ -54,12 +54,12 @@ class _LoadingScreenState extends State<LoadingScreen> {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [primary, primary.withOpacity(0.6)],
+                      colors: [primary, primary.withValues(alpha: 0.6)],
                     ),
                     borderRadius: BorderRadius.circular(32),
                     boxShadow: [
                       BoxShadow(
-                        color: primary.withOpacity(0.3),
+                        color: primary.withValues(alpha: 0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -88,7 +88,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                 Text(
                   'Organize your life elegantly',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
                   ),
@@ -109,7 +109,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                     Text(
                       'Initializing...',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.5),
+                        color: Colors.white.withValues(alpha: 0.5),
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -129,7 +129,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                   borderRadius: BorderRadius.circular(8),
                   child: LinearProgressIndicator(
                     value: _progress,
-                    backgroundColor: Colors.white.withOpacity(0.1),
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
                     valueColor: AlwaysStoppedAnimation<Color>(primary),
                     minHeight: 6,
                   ),
@@ -155,7 +155,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                 width: 120,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
